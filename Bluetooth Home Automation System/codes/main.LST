@@ -1,0 +1,169 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              09/11/2021 11:27:28 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+*** WARNING C500 IN LINE 1 OF main.c: SERIAL NUMBER EXPIRED
+   1          #include <REGX52.H>
+   2          #include "lcd.c"
+   3          sbit RELAY1 = P2^0;
+   4          sbit RELAY2 = P2^1;
+   5          sbit RELAY3 = P2^2;
+   6          sbit RELAY4 = P2^3;
+   7          sbit LED1 = P3^4;  // If required else ignore
+   8          sbit LED2 = P3^5;
+   9          sbit LED3 = P3^6;
+  10          sbit LED4 = P3^7;
+  11          //****************************************
+  12          char rec,stop=0,var=0;     
+  13          //****************************************
+  14          void tx_UART(char);
+  15          //****************************************
+  16          void init_serial()
+  17          {
+  18   1        TMOD = 0x21;       // Timer 1, 8 bit Auto-reload   
+  19   1        TH1 = -3;            // 9600 Baud Rate 
+  20   1        SCON = 0x50;
+  21   1        IE = 0x90;           // For Enabling Serial Port Interrupt       
+  22   1        TR1 = 1;          
+  23   1      }  
+  24          //****************************************
+  25          void delay_ms(int DD)
+  26          {
+  27   1        int i,j;
+  28   1        for(i=1;i<=1275;i++)
+  29   1        {
+  30   2          for(j=1;j<=DD;j++);
+  31   2        }
+  32   1      }
+  33          //****************************************
+  34          void serial() interrupt 4
+  35          { 
+  36   1        RI=0;
+  37   1        rec = SBUF;
+  38   1        var = rec;
+  39   1      }
+  40          
+  41          //****************************************
+  42          void tx_UART(char v)
+  43          { 
+  44   1        IE = 0x00;  
+  45   1        TI=0;
+  46   1        SBUF = v;
+  47   1        while(TI!=1);
+  48   1        TI=0;
+  49   1        IE = 0x90;
+  50   1      }
+  51          
+  52          void tx_UART_string(char *str)
+  53          {
+  54   1        while(*str)
+C51 COMPILER V9.59.0.0   MAIN                                                              09/11/2021 11:27:28 PAGE 2   
+
+  55   1        tx_UART(*str++);
+  56   1      }
+  57          //****************************************
+  58          int main()
+  59          {
+  60   1        RELAY1 = 0;RELAY2 = 0;  RELAY3 = 0;RELAY4 = 0;
+  61   1        init_LCD();
+  62   1        lcd_string("   Bluetooth    ");
+  63   1        lcd_cmd(0xC0);
+  64   1        lcd_string("Home Automation ");
+  65   1        LED1 = 0; LED2 = 0; LED3 = 0; LED4 = 0;
+  66   1        delay_ms(50);
+  67   1        LED1 = 1; LED2 = 1; LED3 = 1; LED4 = 1;
+  68   1        init_serial();
+  69   1        //tx_UART('O');tx_UART('K'); 
+  70   1        tx_UART_string("System Started");
+  71   1        lcd_clear();
+  72   1        lcd_string("D1:OFF    D2:OFF");
+  73   1        lcd_cmd(0xC0);
+  74   1        lcd_string("D3:OFF    D4:OFF"); 
+  75   1          
+  76   1        while(1)
+  77   1        {
+  78   2          // Relay ON : q,w,e,r
+  79   2          // Relay OFF : a,s,d,f
+  80   2          if(var=='q')
+  81   2          {
+  82   3            lcd_cmd(0x80);
+  83   3            lcd_string("D1:ON ");
+  84   3            RELAY1=1;
+  85   3            var=0;
+  86   3          }
+  87   2      
+  88   2          else if(var=='w')
+  89   2          {
+  90   3            lcd_cmd(0x80);
+  91   3            lcd_string("D1:OFF");
+  92   3            RELAY1=0;
+  93   3            var=0;
+  94   3          }
+  95   2          else if(var=='e')
+  96   2          {
+  97   3            lcd_cmd(0x8A);
+  98   3            lcd_string("D2:ON ");
+  99   3            RELAY2=1;
+ 100   3            var=0;
+ 101   3           }
+ 102   2           else if(var=='r')
+ 103   2           {
+ 104   3            lcd_cmd(0x8A);
+ 105   3            lcd_string("D2:OFF");
+ 106   3            RELAY2=0;
+ 107   3            var=0; 
+ 108   3           }
+ 109   2           else if(var=='a')
+ 110   2          {
+ 111   3            lcd_cmd(0xC0);
+ 112   3            lcd_string("D3:ON ");
+ 113   3            RELAY3=1;
+ 114   3            var=0;
+ 115   3           }
+ 116   2           else if(var=='s')
+C51 COMPILER V9.59.0.0   MAIN                                                              09/11/2021 11:27:28 PAGE 3   
+
+ 117   2           {
+ 118   3            lcd_cmd(0xC0);
+ 119   3            lcd_string("D3:OFF");
+ 120   3            RELAY3=0;
+ 121   3            var=0;
+ 122   3           }
+ 123   2           else if(var=='d')
+ 124   2          {
+ 125   3            lcd_cmd(0xCA);
+ 126   3            lcd_string("D4:ON ");
+ 127   3            RELAY4=1;
+ 128   3            var=0;
+ 129   3           }
+ 130   2           else if(var=='f')
+ 131   2           {
+ 132   3            lcd_cmd(0xCA);
+ 133   3            lcd_string("D4:OFF");
+ 134   3            RELAY4=0;
+ 135   3            var=0;
+ 136   3           }
+ 137   2        }
+ 138   1        return 0;
+ 139   1      }
+ 140          //****************************************
+*** WARNING C294 IN LINE 138 OF main.c: unreachable code
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    607    ----
+   CONSTANT SIZE    =    139    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)
